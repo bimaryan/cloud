@@ -136,7 +136,7 @@
             <form action="{{ route('files.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="folder_id" value="{{ $folder->id }}">
-                <input type="text" name="name" class="w-full border rounded-lg p-2 mb-4" placeholder="Files Name">
+                {{-- <input type="text" name="name" class="w-full border rounded-lg p-2 mb-4" placeholder="Files Name"> --}}
                 <input type="file" name="file" class="w-full border rounded-lg p-2 mb-4">
                 <div class="flex justify-end space-x-2">
                     <button type="button" onclick="document.getElementById('addFileModal').classList.add('hidden')"

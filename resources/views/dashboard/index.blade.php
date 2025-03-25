@@ -165,7 +165,7 @@
             <h3 class="text-lg font-semibold mb-4">Upload File</h3>
             <form action="{{ route('files.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <input type="text" name="name" class="w-full border rounded-lg p-2 mb-4" placeholder="File Name">
+                {{-- <input type="text" name="name" class="w-full border rounded-lg p-2 mb-4" placeholder="File Name"> --}}
                 <input type="file" name="file" class="w-full border rounded-lg p-2 mb-4">
                 <div class="flex justify-end space-x-2">
                     <button type="button" onclick="document.getElementById('addFileModal').classList.add('hidden')"
