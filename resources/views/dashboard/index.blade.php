@@ -20,15 +20,32 @@
 
     <div class="max-w-screen-xl mx-auto p-6">
         <div class="space-y-4">
+            <div class="bg-white shadow rounded-lg p-4 mb-4">
+                <h3 class="text-lg font-semibold mb-2">Storage Usage</h3>
+                <div class="relative w-full bg-gray-200 rounded-lg h-6">
+                    @php
+                        $totalStorage = 5 * 1024 * 1024 * 1024;
+                        $usedStorage = \App\Models\File::sum('size');
+                        $usagePercentage = ($usedStorage / $totalStorage) * 100;
+                    @endphp
+                    <div class="absolute top-0 left-0 h-6 bg-blue-600 rounded-lg" style="width: {{ $usagePercentage }}%;">
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">
+                    {{ number_format($usedStorage / (1024 * 1024), 2) }} MB dari
+                    {{ number_format($totalStorage / (1024 * 1024), 2) }} MB digunakan.
+                </p>
+            </div>
+
             <div class="flex justify-between items-center">
                 <!-- Tombol Grid/List -->
                 <div class="bg-white shadow rounded-lg p-2 md:flex hidden space-x-2">
                     <button onclick="toggleView('grid')" id="gridBtn"
-                        class="px-3 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-800 transition">
+                        class="px-2 py-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-800 transition">
                         <i class="fa-solid fa-border-all"></i>
                     </button>
                     <button onclick="toggleView('list')" id="listBtn"
-                        class="px-3 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-800 transition">
+                        class="px-2 py-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-800 transition">
                         <i class="fa-solid fa-list"></i>
                     </button>
                 </div>
@@ -226,7 +243,8 @@
                     placeholder="New Folder Name">
                 <input type="hidden" name="folder_id" id="editFolderId">
                 <div class="flex justify-end space-x-2">
-                    <button type="button" onclick="document.getElementById('editFolderModal').classList.add('hidden')"
+                    <button type="button"
+                        onclick="document.getElementById('editFolderModal').classList.add('hidden')"
                         class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
                     <button type="submit"
                         class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition">Save</button>
@@ -253,6 +271,7 @@
             document.getElementById('editFileForm').action = `/files/${id}`;
             document.getElementById('editFileModal').classList.remove('hidden');
         }
+
         function editFolderName(id, name) {
             document.getElementById('editFolderName').value = name;
             document.getElementById('editFolderId').value = id;

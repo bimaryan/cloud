@@ -38,6 +38,7 @@ class FileController extends Controller
         File::create([
             'name' => $file->getClientOriginalName(),
             'path' => $path,
+            'size' => $file->getSize(),
             'mime_type' => $file->getMimeType(),
             'folder_id' => $request->folder_id,
             'user_id' => Auth::id(),

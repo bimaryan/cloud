@@ -9,7 +9,7 @@ class File extends Model
 {
     protected $table = "files";
 
-    protected $fillable = ['uuid','name', 'path', 'mime_type', 'user_id', 'folder_id'];
+    protected $fillable = ['uuid','name', 'path', 'size','mime_type', 'user_id', 'folder_id'];
 
     protected static function boot()
     {

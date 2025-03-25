@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('path');
+            $table->bigInteger('size');
             $table->string('mime_type');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('folder_id')->nullable()->constrained('folders')->onDelete('cascade');
