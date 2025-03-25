@@ -46,26 +46,32 @@
 
             <!-- Grid Folder dan File -->
             <div id="itemContainer" class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                @foreach ($subfolders as $subfolder)
-                    <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-regular fa-folder mr-2"></i>
-                            <a href="{{ route('dashboard.show', $subfolder->uuid) }}"
-                                class="font-medium text-blue-600 hover:underline">
-                                {{ $subfolder->name }}
-                            </a>
+                <div>
+                    @foreach ($subfolders as $subfolder)
+                        <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-regular fa-folder mr-2"></i>
+                                <a href="{{ route('dashboard.show', $subfolder->uuid) }}"
+                                    class="font-medium text-blue-600 hover:underline">
+                                    {{ $subfolder->name }}
+                                </a>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="editFolderName('{{ $subfolder->id }}', '{{ $subfolder->name }}')"
+                                    class="text-yellow-500 hover:text-yellow-700">
+                                    <i class="fa-solid fa-edit"></i>
+                                </button>
+                                <form action="{{ route('folders.destroy', $subfolder->id) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-500 hover:text-red-700">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <form action="{{ route('folders.destroy', $subfolder->id) }}" method="POST"
-                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus folder ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-red-500 hover:text-red-700">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                @endforeach
-
+                    @endforeach
+                </div>
                 @foreach ($files as $file)
                     <div class="bg-white p-4 rounded-lg shadow">
                         @php
@@ -88,22 +94,69 @@
                         @else
                             <i class="fa-regular fa-file mr-2"></i>
                         @endif
-                        <div class="flex justify-between items-center space-x-2">
-                            <a href="{{ asset('storage/' . $file->path) }}" target="_blank"
-                                class="text-blue-600 hover:underline mt-2">
-                                {{ $file->name }}
-                            </a>
-                            <form action="{{ route('files.destroy', $file->id) }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-500 hover:text-red-700">
-                                    <i class="fa-solid fa-trash"></i>
+                        <div class="flex justify-between items-center space-x-2 mt-2">
+                            <div>
+                                <a href="{{ asset('storage/' . $file->path) }}" target="_blank"
+                                    class="text-blue-600 hover:underline mt-2">
+                                    {{ $file->name }}
+                                </a>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="editFileName('{{ $file->id }}', '{{ $file->name }}')"
+                                    class="text-yellow-500 hover:text-yellow-700">
+                                    <i class="fa-solid fa-edit"></i>
                                 </button>
-                            </form>
+                                <form action="{{ route('files.destroy', $file->id) }}" method="POST">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="text-red-500 hover:text-red-700">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 @endforeach
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit File -->
+    <div id="editFileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 class="text-lg font-semibold mb-4">Edit File Name</h3>
+            <form id="editFileForm" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="text" name="name" id="editFileName" class="w-full border rounded-lg p-2 mb-2"
+                    placeholder="New File Name">
+                <input type="hidden" name="file_id" id="editFileId">
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('editFileModal').classList.add('hidden')"
+                        class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit Folders -->
+    <div id="editFolderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 class="text-lg font-semibold mb-4">Edit Folders Name</h3>
+            <form id="editFolderForm" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="text" name="name" id="editFolderName" class="w-full border rounded-lg p-2 mb-2"
+                    placeholder="New Folder Name">
+                <input type="hidden" name="folder_id" id="editFolderId">
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('editFolderModal').classList.add('hidden')"
+                        class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition">Save</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -158,6 +211,33 @@
                 container.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-3');
                 container.classList.add('flex', 'flex-col', 'gap-2');
             }
+        }
+    </script>
+
+    <script>
+        function toggleView(view) {
+            let container = document.getElementById('itemContainer');
+            if (view === 'grid') {
+                container.classList.remove('flex', 'flex-col');
+                container.classList.add('grid', 'grid-cols-1', 'md:grid-cols-4', 'gap-4');
+            } else {
+                container.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-4');
+                container.classList.add('flex', 'flex-col', 'gap-4');
+            }
+        }
+
+        function editFileName(id, name) {
+            document.getElementById('editFileName').value = name;
+            document.getElementById('editFileId').value = id;
+            document.getElementById('editFileForm').action = `/files/${id}`;
+            document.getElementById('editFileModal').classList.remove('hidden');
+        }
+
+        function editFolderName(id, name) {
+            document.getElementById('editFolderName').value = name;
+            document.getElementById('editFolderId').value = id;
+            document.getElementById('editFolderForm').action = `/folders/${id}`;
+            document.getElementById('editFolderModal').classList.remove('hidden');
         }
     </script>
 </x-app-layout>

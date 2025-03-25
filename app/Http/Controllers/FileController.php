@@ -28,7 +28,7 @@ class FileController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:jpg,jpeg,png,gif,mp3,wav,mp4,avi,mov,mkv|max:10240',
+            'file' => 'required|file|mimes:jpg,jpeg,png,gif,mp3,wav,mp4,avi,mov,mkv,pdf,doc,docx,xls,xlsx,pptx|max:102400',
             'folder_id' => 'nullable|exists:folders,id',
         ]);
 
@@ -46,8 +46,10 @@ class FileController extends Controller
         return redirect()->back()->with('success', 'File berhasil diunggah!');
     }
 
-    public function update(Request $request, File $file)
+    public function update(Request $request, $id)
     {
+        $file = File::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+
         $request->validate([
             'name' => 'required|string|max:255'
         ]);

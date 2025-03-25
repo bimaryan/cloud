@@ -134,6 +134,10 @@
                                         </a>
                                     </div>
                                     <div class="flex items-center space-x-2">
+                                        <button onclick="editFolderName('{{ $item->id }}', '{{ $item->name }}')"
+                                            class="text-yellow-500 hover:text-yellow-700">
+                                            <i class="fa-solid fa-edit"></i>
+                                        </button>
                                         <form
                                             action="{{ isset($item->path) ? route('files.destroy', $item->id) : route('folders.destroy', $item->id) }}"
                                             method="POST">
@@ -211,6 +215,26 @@
         </div>
     </div>
 
+    <!-- Modal Edit Folders -->
+    <div id="editFolderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 class="text-lg font-semibold mb-4">Edit Folders Name</h3>
+            <form id="editFolderForm" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="text" name="name" id="editFolderName" class="w-full border rounded-lg p-2 mb-2"
+                    placeholder="New Folder Name">
+                <input type="hidden" name="folder_id" id="editFolderId">
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('editFolderModal').classList.add('hidden')"
+                        class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function toggleView(view) {
             let container = document.getElementById('itemContainer');
@@ -228,6 +252,12 @@
             document.getElementById('editFileId').value = id;
             document.getElementById('editFileForm').action = `/files/${id}`;
             document.getElementById('editFileModal').classList.remove('hidden');
+        }
+        function editFolderName(id, name) {
+            document.getElementById('editFolderName').value = name;
+            document.getElementById('editFolderId').value = id;
+            document.getElementById('editFolderForm').action = `/folders/${id}`;
+            document.getElementById('editFolderModal').classList.remove('hidden');
         }
     </script>
 </x-app-layout>

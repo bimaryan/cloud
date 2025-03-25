@@ -28,6 +28,21 @@ class FolderController extends Controller
         return redirect()->back()->with('success', 'Folder berhasil dibuat!');
     }
 
+    public function update(Request $request, $id)
+    {
+        $file = Folder::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+
+        $request->validate([
+            'name' => 'required|string|max:255'
+        ]);
+
+        $file->update([
+            'name' => $request->name
+        ]);
+
+        return redirect()->back()->with('success', 'File name updated successfully.');
+    }
+
     /**
      * Hapus folder dan isinya.
      */
