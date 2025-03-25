@@ -62,14 +62,18 @@
                                             class="text-blue-600 hover:underline">
                                             {{ $item->name }}
                                         </a>
-                                        <form
-                                            action="{{ isset($item->path) ? route('files.destroy', $item->id) : route('folders.destroy', $item->id) }}"
-                                            method="POST">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="text-red-500 hover:text-red-700">
-                                                <i class="fa-solid fa-trash"></i>
+                                        <div class="flex space-x-2">
+                                            <button onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
+                                                class="text-yellow-500 hover:text-yellow-700">
+                                                <i class="fa-solid fa-edit"></i>
                                             </button>
-                                        </form>
+                                            <form action="{{ route('files.destroy', $item->id) }}" method="POST">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 @elseif (str_starts_with($item->mime_type, 'audio'))
                                     <audio controls class="w-full mb-2">
@@ -81,14 +85,19 @@
                                             class="text-blue-600 hover:underline">
                                             {{ $item->name }}
                                         </a>
-                                        <form
-                                            action="{{ isset($item->path) ? route('files.destroy', $item->id) : route('folders.destroy', $item->id) }}"
-                                            method="POST">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="text-red-500 hover:text-red-700">
-                                                <i class="fa-solid fa-trash"></i>
+                                        <div class="flex space-x-2">
+                                            <button
+                                                onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
+                                                class="text-yellow-500 hover:text-yellow-700">
+                                                <i class="fa-solid fa-edit"></i>
                                             </button>
-                                        </form>
+                                            <form action="{{ route('files.destroy', $item->id) }}" method="POST">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 @elseif (str_starts_with($item->mime_type, 'video'))
                                     <video controls class="w-full rounded-lg mb-2">
@@ -100,14 +109,19 @@
                                             class="text-blue-600 hover:underline">
                                             {{ $item->name }}
                                         </a>
-                                        <form
-                                            action="{{ isset($item->path) ? route('files.destroy', $item->id) : route('folders.destroy', $item->id) }}"
-                                            method="POST">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="text-red-500 hover:text-red-700">
-                                                <i class="fa-solid fa-trash"></i>
+                                        <div class="flex space-x-2">
+                                            <button
+                                                onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
+                                                class="text-yellow-500 hover:text-yellow-700">
+                                                <i class="fa-solid fa-edit"></i>
                                             </button>
-                                        </form>
+                                            <form action="{{ route('files.destroy', $item->id) }}" method="POST">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 @endif
                             @else
@@ -119,7 +133,7 @@
                                             {{ $item->name }}
                                         </a>
                                     </div>
-                                    <div>
+                                    <div class="flex items-center space-x-2">
                                         <form
                                             action="{{ isset($item->path) ? route('files.destroy', $item->id) : route('folders.destroy', $item->id) }}"
                                             method="POST">
@@ -177,6 +191,26 @@
         </div>
     </div>
 
+    <!-- Modal Edit File -->
+    <div id="editFileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 class="text-lg font-semibold mb-4">Edit File Name</h3>
+            <form id="editFileForm" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="text" name="name" id="editFileName" class="w-full border rounded-lg p-2 mb-2"
+                    placeholder="New File Name">
+                <input type="hidden" name="file_id" id="editFileId">
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('editFileModal').classList.add('hidden')"
+                        class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function toggleView(view) {
             let container = document.getElementById('itemContainer');
@@ -187,6 +221,13 @@
                 container.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-4');
                 container.classList.add('flex', 'flex-col', 'gap-4');
             }
+        }
+
+        function editFileName(id, name) {
+            document.getElementById('editFileName').value = name;
+            document.getElementById('editFileId').value = id;
+            document.getElementById('editFileForm').action = `/files/${id}`;
+            document.getElementById('editFileModal').classList.remove('hidden');
         }
     </script>
 </x-app-layout>

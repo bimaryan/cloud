@@ -46,6 +46,19 @@ class FileController extends Controller
         return redirect()->back()->with('success', 'File berhasil diunggah!');
     }
 
+    public function update(Request $request, File $file)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255'
+        ]);
+
+        $file->update([
+            'name' => $request->name
+        ]);
+
+        return redirect()->back()->with('success', 'File name updated successfully.');
+    }
+
     /**
      * Unduh file.
      */
