@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\File;
 use App\Models\Folder;
+use Spatie\ImageOptimizer\OptimizerChainFactory;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,6 +36,14 @@ class FileController extends Controller
         $file = $request->file('file');
         $path = $file->store('uploads/' . Auth::id(), 'public');
 
+        // Kompresi file jika jenisnya gambar atau video
+        $filePath = storage_path("app/public/$path");
+
+        if (str_contains($file->getMimeType(), 'image') || str_contains($file->getMimeType(), 'video')) {
+            $optimizerChain = OptimizerChainFactory::create();
+            $optimizerChain->optimize($filePath);
+        }
+
         File::create([
             'name' => $file->getClientOriginalName(),
             'path' => $path,
@@ -44,7 +53,7 @@ class FileController extends Controller
             'user_id' => Auth::id(),
         ]);
 
-        return redirect()->back()->with('success', 'File berhasil diunggah!');
+        return redirect()->back()->with('success', 'File berhasil diunggah dengan kompresi!');
     }
 
     public function update(Request $request, $id)

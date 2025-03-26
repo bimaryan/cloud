@@ -2,12 +2,19 @@
     @if (session('success') || session('error'))
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                Swal.fire({
-                    icon: "{{ session('success') ? 'success' : 'error' }}",
-                    text: {!! json_encode(session('success') ?? session('error')) !!}
-                });
+                if (!sessionStorage.getItem("alertShown")) {
+                    Swal.fire({
+                        icon: "{{ session('success') ? 'success' : 'error' }}",
+                        text: {!! json_encode(session('success') ?? session('error')) !!}
+                    });
+                    sessionStorage.setItem("alertShown", "true");
+                }
             });
         </script>
+        @php
+            session()->forget('success');
+            session()->forget('error');
+        @endphp
     @endif
 
     <x-slot name="header">
@@ -198,19 +205,34 @@
     <div id="addFileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-white p-6 rounded-lg shadow-lg w-96">
             <h3 class="text-lg font-semibold mb-4">Upload File</h3>
-            <form action="{{ route('files.store') }}" method="POST" enctype="multipart/form-data">
+            <form id="uploadForm" action="{{ route('files.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                {{-- <input type="text" name="name" class="w-full border rounded-lg p-2 mb-4" placeholder="File Name"> --}}
-                <input type="file" name="file" class="w-full border rounded-lg p-2 mb-4">
-                <div class="flex justify-end space-x-2">
+                <input type="file" name="file" id="fileInput" class="w-full border rounded-lg p-2 mb-2">
+                @error('file')
+                    <p class="text-sm text-red-500 mb-2">{{ $message }}</p>
+                @enderror
+
+                <!-- Progress Bar -->
+                <div id="progressContainer" class="hidden mt-2">
+                    <div class="relative w-full bg-gray-200 rounded-lg h-4">
+                        <div id="progressBar" class="absolute top-0 left-0 h-4 bg-blue-600 rounded-lg w-0"></div>
+                    </div>
+                    <p id="progressText" class="text-sm text-gray-600 mt-1 text-center">0%</p>
+                    <p id="timeRemaining" class="text-xs text-gray-500 text-center mt-1"></p>
+                </div>
+
+                <div class="flex justify-end space-x-2 mt-4">
                     <button type="button" onclick="document.getElementById('addFileModal').classList.add('hidden')"
                         class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
-                    <button type="submit"
-                        class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition">Save</button>
+                    <button type="submit" id="uploadButton"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                        Upload
+                    </button>
                 </div>
             </form>
         </div>
     </div>
+
 
     <!-- Modal Edit File -->
     <div id="editFileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
@@ -278,5 +300,81 @@
             document.getElementById('editFolderForm').action = `/folders/${id}`;
             document.getElementById('editFolderModal').classList.remove('hidden');
         }
+
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            let fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                Swal.fire({
+                    icon: 'info',
+                    text: 'Pilih file terlebih dahulu.'
+                });
+                return;
+            }
+
+            let formData = new FormData(this);
+            let xhr = new XMLHttpRequest();
+            let progressBar = document.getElementById('progressBar');
+            let progressText = document.getElementById('progressText');
+            let timeRemaining = document.getElementById('timeRemaining');
+            let progressContainer = document.getElementById('progressContainer');
+            let uploadButton = document.getElementById('uploadButton');
+
+            progressContainer.classList.remove('hidden');
+            uploadButton.disabled = true;
+            uploadButton.innerText = "Uploading...";
+
+            let startTime = new Date().getTime();
+
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    let percent = Math.round((event.loaded / event.total) * 100);
+                    progressBar.style.width = percent + "%";
+                    progressText.innerText = percent + "%";
+
+                    // Estimasi waktu sisa
+                    let elapsedTime = (new Date().getTime() - startTime) / 1000;
+                    let uploadSpeed = event.loaded / elapsedTime;
+                    let remainingTime = (event.total - event.loaded) / uploadSpeed;
+
+                    if (remainingTime > 1) {
+                        timeRemaining.innerText = "Sisa waktu: " + Math.round(remainingTime) + " detik";
+                    } else {
+                        timeRemaining.innerText = "Menyelesaikan...";
+                    }
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status == 200) {
+                    Swal.fire({
+                        title: "Berhasil!",
+                        text: 'Upload berhasil!',
+                    });
+                    window.location.reload();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        text: 'Terjadi kesalahan saat upload.',
+                    });
+                }
+                uploadButton.disabled = false;
+                uploadButton.innerText = "Upload";
+            };
+
+            xhr.onerror = function() {
+                Swal.fire({
+                    icon: 'error',
+                    text: 'Gagal mengunggah file.'
+                });
+                uploadButton.disabled = false;
+                uploadButton.innerText = "Upload";
+            };
+
+            xhr.open('POST', this.action, true);
+            xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('input[name="_token"]').value);
+            xhr.send(formData);
+        });
     </script>
 </x-app-layout>
