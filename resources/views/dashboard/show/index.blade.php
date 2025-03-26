@@ -23,7 +23,7 @@
         <div class="space-y-4">
             <a href="{{ route('dashboard.index') }}"
                 class="font-semibold text-m text-gray-800 dark:text-gray-200 leading-tight">
-                Dashboard
+                <i class="fa-solid fa-house"></i>
             </a>
 
             @if (isset($breadcrumb) && count($breadcrumb) > 0)
@@ -146,69 +146,258 @@
                                         : null;
                                 @endphp
 
-                                <div class="w-full">
+                                <div class="w-full space-y-2">
                                     @if ($mime && Str::startsWith($mime, 'image/'))
                                         <img src="{{ asset('storage/' . $item->path) }}" alt="{{ $item->name }}"
                                             class="w-full object-cover rounded-lg">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <a href="{{ asset('storage/' . $item->path) }}" target="_blank"
+                                                    class="dark:text-white underline">
+                                                    {{ Str::limit($item->name, 20) }}
+                                                </a>
+                                            </div>
+                                            <div class="relative">
+                                                <button onclick="toggleDropdown('{{ $item->id }}')"
+                                                    class="dark:text-white">
+                                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                                </button>
+                                                <div id="dropdown-{{ $item->id }}"
+                                                    class="hidden absolute right-0 z-10 mt-2 w-40 bg-white dark:bg-gray-700 shadow-lg rounded-md">
+                                                    <ul class="p-3">
+                                                        <li>
+                                                            <button
+                                                                onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
+                                                                class="text-yellow-500 hover:text-yellow-700">
+                                                                <i class="fa-solid fa-edit"></i> Edit
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            @if (in_array($item->mime_type, [
+                                                                    'text/html',
+                                                                    'text/css',
+                                                                    'application/javascript',
+                                                                    'text/javascript',
+                                                                    'application/x-httpd-php',
+                                                                ]))
+                                                                <a href="{{ route('files.edit', $item->uuid) }}"
+                                                                    class="bg-gray-700 text-white">
+                                                                    <i class="fa-solid fa-code"></i> Edit File
+                                                                </a>
+                                                            @endif
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                onclick="shareItem('{{ $item->id }}', '{{ asset('storage/' . $item->path) }}')"
+                                                                class="text-blue-500 hover:text-blue-700">
+                                                                <i class="fa-solid fa-share"></i> Share
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <form action="{{ route('files.destroy', $item->id) }}"
+                                                                method="POST">
+                                                                @csrf @method('DELETE')
+                                                                <button type="submit"
+                                                                    class="text-red-500 hover:text-red-700">
+                                                                    <i class="fa-solid fa-trash"></i> Delete
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @elseif ($mime && Str::startsWith($mime, 'audio/'))
                                         <audio controls class="w-full">
                                             <source src="{{ asset('storage/' . $item->path) }}"
                                                 type="{{ $mime }}">
                                             Your browser does not support the audio element.
                                         </audio>
+
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <i class="fa-regular fa-file mr-2"></i>
+                                                <a href="{{ asset('storage/' . $item->path) }}" target="_blank"
+                                                    class="dark:text-white underline">
+                                                    {{ Str::limit($item->name, 20) }}
+                                                </a>
+                                            </div>
+                                            <div class="relative">
+                                                <button onclick="toggleDropdown('{{ $item->id }}')"
+                                                    class="dark:text-white">
+                                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                                </button>
+                                                <div id="dropdown-{{ $item->id }}"
+                                                    class="hidden absolute right-0 z-10 mt-2 w-40 bg-white dark:bg-gray-700 shadow-lg rounded-md">
+                                                    <ul class="p-3">
+                                                        <li>
+                                                            <button
+                                                                onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
+                                                                class="text-yellow-500 hover:text-yellow-700">
+                                                                <i class="fa-solid fa-edit"></i> Edit
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            @if (in_array($item->mime_type, [
+                                                                    'text/html',
+                                                                    'text/css',
+                                                                    'text/plain',
+                                                                    'application/javascript',
+                                                                    'text/javascript',
+                                                                    'application/x-httpd-php',
+                                                                ]))
+                                                                <a href="{{ route('files.edit', $item->uuid) }}"
+                                                                    class="bg-gray-700 text-white">
+                                                                    <i class="fa-solid fa-code"></i> Edit File
+                                                                </a>
+                                                            @endif
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                onclick="shareItem('{{ $item->id }}', '{{ asset('storage/' . $item->path) }}')"
+                                                                class="text-blue-500 hover:text-blue-700">
+                                                                <i class="fa-solid fa-share"></i> Share
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <form action="{{ route('files.destroy', $item->id) }}"
+                                                                method="POST">
+                                                                @csrf @method('DELETE')
+                                                                <button type="submit"
+                                                                    class="text-red-500 hover:text-red-700">
+                                                                    <i class="fa-solid fa-trash"></i> Delete
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @elseif ($mime && Str::startsWith($mime, 'video/'))
                                         <video controls class="w-full">
                                             <source src="{{ asset('storage/' . $item->path) }}"
                                                 type="{{ $mime }}">
                                             Your browser does not support the video tag.
                                         </video>
-                                    @else
-                                        <i class="fa-regular fa-file mr-2"></i>
-                                    @endif
 
-                                    <div class="flex justify-between items-center mt-2">
-                                        <div>
-                                            <a href="{{ asset('storage/' . $item->path) }}" target="_blank"
-                                                class="dark:text-white underline">
-                                                {{ Str::limit($item->name, 20) }}
-                                            </a>
-                                        </div>
-                                        <div class="relative">
-                                            <button onclick="toggleDropdown('{{ $item->id }}')"
-                                                class="dark:text-white">
-                                                <i class="fa-solid fa-ellipsis-vertical"></i>
-                                            </button>
-                                            <div id="dropdown-{{ $item->id }}"
-                                                class="hidden absolute right-0 z-10 mt-2 w-40 bg-white dark:bg-gray-700 shadow-lg rounded-md">
-                                                <ul class="p-3">
-                                                    <li>
-                                                        <button
-                                                            onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
-                                                            class="text-yellow-500 hover:text-yellow-700">
-                                                            <i class="fa-solid fa-edit"></i> Edit
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button
-                                                            onclick="shareItem('{{ $item->id }}', '{{ asset('storage/' . $item->path) }}')"
-                                                            class="text-blue-500 hover:text-blue-700">
-                                                            <i class="fa-solid fa-share"></i> Share
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <form action="{{ route('files.destroy', $item->id) }}"
-                                                            method="POST">
-                                                            @csrf @method('DELETE')
-                                                            <button type="submit"
-                                                                class="text-red-500 hover:text-red-700">
-                                                                <i class="fa-solid fa-trash"></i> Delete
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <i class="fa-regular fa-file mr-2"></i>
+                                                <a href="{{ asset('storage/' . $item->path) }}" target="_blank"
+                                                    class="dark:text-white underline">
+                                                    {{ Str::limit($item->name, 20) }}
+                                                </a>
+                                            </div>
+                                            <div class="relative">
+                                                <button onclick="toggleDropdown('{{ $item->id }}')"
+                                                    class="dark:text-white">
+                                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                                </button>
+                                                <div id="dropdown-{{ $item->id }}"
+                                                    class="hidden absolute right-0 z-10 mt-2 w-40 bg-white dark:bg-gray-700 shadow-lg rounded-md">
+                                                    <ul class="p-3">
+                                                        <li>
+                                                            <button
+                                                                onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
+                                                                class="text-yellow-500 hover:text-yellow-700">
+                                                                <i class="fa-solid fa-edit"></i> Edit
                                                             </button>
-                                                        </form>
-                                                    </li>
-                                                </ul>
+                                                        </li>
+                                                        <li>
+                                                            @if (in_array($item->mime_type, [
+                                                                    'text/html',
+                                                                    'text/css',
+                                                                    'application/javascript',
+                                                                    'text/javascript',
+                                                                    'application/x-httpd-php',
+                                                                ]))
+                                                                <a href="{{ route('files.edit', $item->uuid) }}"
+                                                                    class="bg-gray-700 text-white">
+                                                                    <i class="fa-solid fa-code"></i> Edit File
+                                                                </a>
+                                                            @endif
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                onclick="shareItem('{{ $item->id }}', '{{ asset('storage/' . $item->path) }}')"
+                                                                class="text-blue-500 hover:text-blue-700">
+                                                                <i class="fa-solid fa-share"></i> Share
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <form action="{{ route('files.destroy', $item->id) }}"
+                                                                method="POST">
+                                                                @csrf @method('DELETE')
+                                                                <button type="submit"
+                                                                    class="text-red-500 hover:text-red-700">
+                                                                    <i class="fa-solid fa-trash"></i> Delete
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @else
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <i class="fa-regular fa-file mr-2"></i>
+                                                <a href="{{ asset('storage/' . $item->path) }}" target="_blank"
+                                                    class="dark:text-white underline">
+                                                    {{ Str::limit($item->name, 20) }}
+                                                </a>
+                                            </div>
+                                            <div class="relative">
+                                                <button onclick="toggleDropdown('{{ $item->id }}')"
+                                                    class="dark:text-white">
+                                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                                </button>
+                                                <div id="dropdown-{{ $item->id }}"
+                                                    class="hidden absolute right-0 z-10 mt-2 w-40 bg-white dark:bg-gray-700 shadow-lg rounded-md">
+                                                    <ul class="p-3">
+                                                        <li>
+                                                            <button
+                                                                onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
+                                                                class="text-yellow-500 hover:text-yellow-700">
+                                                                <i class="fa-solid fa-edit"></i> Edit
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            @if (in_array($item->mime_type, [
+                                                                    'text/html',
+                                                                    'text/css',
+                                                                    'application/javascript',
+                                                                    'text/javascript',
+                                                                    'application/x-httpd-php',
+                                                                ]))
+                                                                <a href="{{ route('files.edit', $item->uuid) }}"
+                                                                    class="bg-gray-700 text-white">
+                                                                    <i class="fa-solid fa-code"></i> Edit File
+                                                                </a>
+                                                            @endif
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                onclick="shareItem('{{ $item->id }}', '{{ asset('storage/' . $item->path) }}')"
+                                                                class="text-blue-500 hover:text-blue-700">
+                                                                <i class="fa-solid fa-share"></i> Share
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <form action="{{ route('files.destroy', $item->id) }}"
+                                                                method="POST">
+                                                                @csrf @method('DELETE')
+                                                                <button type="submit"
+                                                                    class="text-red-500 hover:text-red-700">
+                                                                    <i class="fa-solid fa-trash"></i> Delete
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
                         </div>
@@ -274,6 +463,14 @@
                 @error('name')
                     <p class="text-sm text-red-500 mb-2">{{ $message }}</p>
                 @enderror
+                <!-- Dropdown Status -->
+                <select name="status" class="w-full border rounded-lg p-2 mb-2 dark:bg-gray-700 dark:text-white">
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                </select>
+                @error('status')
+                    <p class="text-sm text-red-500 mb-2">{{ $message }}</p>
+                @enderror
                 <div class="flex justify-end space-x-2">
                     <button type="button" onclick="document.getElementById('addFolderModal').classList.add('hidden')"
                         class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg">Cancel</button>
@@ -294,6 +491,15 @@
                 <input type="file" name="file" id="fileInput"
                     class="w-full border rounded-lg p-2 mb-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                 @error('file')
+                    <p class="text-sm text-red-500 mb-2">{{ $message }}</p>
+                @enderror
+
+                <!-- Dropdown Status -->
+                <select name="status" class="w-full border rounded-lg p-2 mb-2 dark:bg-gray-700 dark:text-white">
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                </select>
+                @error('status')
                     <p class="text-sm text-red-500 mb-2">{{ $message }}</p>
                 @enderror
 

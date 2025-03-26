@@ -15,8 +15,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
+
 Route::middleware('auth')->group(function () {
     Route::resource('dashboard', DashboardController::class)->only('index', 'show');
+    Route::get('/dashboard/{id}/edit', [FileController::class, 'edit'])->name('files.edit');
+    Route::post('/dashboard/{id}/update', [FileController::class, 'updateContent'])->name('files.updateContent');
+    
     Route::post('/move-folder', [MoveController::class, 'store'])->name('folders.move');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

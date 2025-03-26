@@ -9,7 +9,7 @@ class Folder extends Model
 {
     protected $table = "folders";
 
-    protected $fillable = ['uuid', 'name', 'parent_id', 'user_id'];
+    protected $fillable = ['uuid', 'name', 'status', 'parent_id', 'user_id'];
 
     protected static function boot()
     {

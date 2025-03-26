@@ -22,6 +22,7 @@ class FolderController extends Controller
         Folder::create([
             'name' => $request->name,
             'parent_id' => $request->parent_id,
+            'status' => $request->status,
             'user_id' => Auth::id(),
         ]);
 

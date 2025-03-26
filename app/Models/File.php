@@ -9,7 +9,7 @@ class File extends Model
 {
     protected $table = "files";
 
-    protected $fillable = ['uuid','name', 'path', 'size','mime_type', 'user_id', 'folder_id'];
+    protected $fillable = ['uuid', 'name', 'status', 'path', 'size', 'mime_type', 'user_id', 'folder_id'];
 
     protected static function boot()
     {
@@ -22,5 +22,10 @@ class File extends Model
     public function getRouteKeyName()
     {
         return 'uuid';
+    }
+
+    public function folder()
+    {
+        return $this->belongsTo(Folder::class, 'folder_id');
     }
 }

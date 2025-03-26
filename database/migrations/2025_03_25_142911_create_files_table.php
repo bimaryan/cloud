@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->id();
             $table->string('name');
+            $table->enum('status', ['public', 'private'])->default('private');
             $table->string('path');
             $table->bigInteger('size');
             $table->string('mime_type');

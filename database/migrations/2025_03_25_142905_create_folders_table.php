@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->id();
             $table->string('name');
+            $table->enum('status', ['public', 'private'])->default('private');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('parent_id')->nullable()->constrained('folders')->onDelete('cascade');
             $table->timestamps();
