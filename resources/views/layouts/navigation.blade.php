@@ -7,7 +7,7 @@
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard.index') }}">
                         {{-- <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" /> --}}
-                        <p class="text-2xl font-semibold dark:text-white">Cloud <span class="text-xs">v1.2.4</span></p>
+                        <p class="text-2xl font-semibold dark:text-white">Cloud <span class="text-xs">v1.3.0</span></p>
                     </a>
                 </div>
 

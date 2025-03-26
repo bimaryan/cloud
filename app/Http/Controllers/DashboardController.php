@@ -22,9 +22,11 @@ class DashboardController extends Controller
             ->get();
 
         // Gabungkan hasil query dan urutkan lagi jika perlu
-        $items = $folders->merge($files)->sortByDesc('created_at');
+        $items = $folders->merge($files)->sortByDesc(fn($item) => $item->created_at->timestamp)->values();
 
-        return view('dashboard.index', compact('items'));
+        $breadcrumb = collect();
+
+        return view('dashboard.index', compact('items', 'breadcrumb'));
     }
 
     public function show($uuid)
@@ -35,6 +37,15 @@ class DashboardController extends Controller
 
         $items = $subfolders->merge($files)->sortByDesc('created_at');
 
-        return view('dashboard.show.index', compact('items', 'folder'));
+        // Ambil hierarki folder dari root ke folder saat ini
+        $breadcrumb = [];
+        $currentFolder = $folder;
+        while ($currentFolder) {
+            $breadcrumb[] = $currentFolder;
+            $currentFolder = $currentFolder->parent;
+        }
+        $breadcrumb = array_reverse($breadcrumb);
+
+        return view('dashboard.show.index', compact('items', 'folder', 'breadcrumb'));
     }
 }

@@ -10,16 +10,26 @@
         </script>
     @endif
 
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Dashboard') }}
-            </h2>
-        </div>
-    </x-slot>
-
     <div class="max-w-screen-xl mx-auto p-6">
         <div class="space-y-4">
+            <a href="{{ route('dashboard.index') }}"
+                class="font-semibold text-m text-gray-800 dark:text-gray-200 leading-tight">
+                Dashboard
+            </a>
+
+            @if (isset($breadcrumb) && count($breadcrumb) > 0)
+                <span class="mx-2 dark:text-white">/</span>
+                @foreach ($breadcrumb as $crumb)
+                    <a href="{{ route('dashboard.show', $crumb->uuid) }}"
+                        class="font-semibold text-m underline text-gray-800 dark:text-gray-200 leading-tight">
+                        {{ $crumb->name }}
+                    </a>
+                    @if (!$loop->last)
+                        <span class="mx-2 dark:text-white">/</span>
+                    @endif
+                @endforeach
+            @endif
+
             <div class="bg-white dark:bg-gray-800 dark:text-white shadow rounded-lg p-4 mb-4">
                 <h3 class="text-lg font-semibold mb-2">Storage Usage</h3>
                 <div class="relative w-full bg-gray-200 rounded-lg h-6">
@@ -28,7 +38,8 @@
                         $usedStorage = \App\Models\File::sum('size');
                         $usagePercentage = ($usedStorage / $totalStorage) * 100;
                     @endphp
-                    <div class="absolute top-0 left-0 h-6 bg-blue-600 rounded-lg" style="width: {{ $usagePercentage }}%;">
+                    <div class="absolute top-0 left-0 h-6 bg-blue-600 rounded-lg"
+                        style="width: {{ $usagePercentage }}%;">
                     </div>
                 </div>
                 <p class="text-sm text-gray-600 mt-2">
@@ -66,83 +77,67 @@
             <!-- Grid Folder dan File-->
             <div id="itemContainer" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 @foreach ($items as $item)
-                    <div>
+                    <div class="relative"> {{-- Tambahkan relative agar dropdown bisa diatur absolut --}}
                         <div class="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg shadow">
                             @if (isset($item->path))
-                                {{-- Jika item adalah file --}}
                                 @if (str_starts_with($item->mime_type, 'image'))
-                                    {{-- <i class="fa-regular fa-file text-gray-600"></i> --}}
                                     <img src="{{ asset('storage/' . $item->path) }}"
                                         class="w-full object-cover rounded-lg mb-2" />
-                                    <div class="flex justify-between items-start mt-2">
-                                        <a href="{{ asset('storage/' . $item->path) }}" target="_blank"
-                                            class="text-blue-600 hover:underline">
-                                            {{ Str::limit($item->name, 20) }}
-                                        </a>
-                                        <div class="flex space-x-2">
-                                            <button onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
-                                                class="text-yellow-500 hover:text-yellow-700">
-                                                <i class="fa-solid fa-edit"></i>
-                                            </button>
-                                            <form action="{{ route('files.destroy', $item->id) }}" method="POST">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="text-red-500 hover:text-red-700">
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
                                 @elseif (str_starts_with($item->mime_type, 'audio'))
                                     <audio controls class="w-full mb-2">
                                         <source src="{{ asset('storage/' . $item->path) }}"
                                             type="{{ $item->mime_type }}">
                                     </audio>
-                                    <div class="flex justify-between items-start mt-2">
-                                        <a href="{{ asset('storage/' . $item->path) }}" target="_blank"
-                                            class="text-blue-600 hover:underline">
-                                            {{ Str::limit($item->name, 20) }}
-                                        </a>
-                                        <div class="flex space-x-2">
-                                            <button
-                                                onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
-                                                class="text-yellow-500 hover:text-yellow-700">
-                                                <i class="fa-solid fa-edit"></i>
-                                            </button>
-                                            <form action="{{ route('files.destroy', $item->id) }}" method="POST">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="text-red-500 hover:text-red-700">
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
                                 @elseif (str_starts_with($item->mime_type, 'video'))
                                     <video controls class="w-full rounded-lg mb-2">
                                         <source src="{{ asset('storage/' . $item->path) }}"
                                             type="{{ $item->mime_type }}">
                                     </video>
-                                    <div class="flex justify-between items-start mt-2">
-                                        <a href="{{ asset('storage/' . $item->path) }}" target="_blank"
-                                            class="text-blue-600 hover:underline">
-                                            {{ Str::limit($item->name, 20) }}
-                                        </a>
-                                        <div class="flex space-x-2">
-                                            <button
-                                                onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
-                                                class="text-yellow-500 hover:text-yellow-700">
-                                                <i class="fa-solid fa-edit"></i>
-                                            </button>
-                                            <form action="{{ route('files.destroy', $item->id) }}" method="POST">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="text-red-500 hover:text-red-700">
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            </form>
+                                @endif
+
+                                <div class="flex justify-between items-start mt-2">
+                                    <a href="{{ asset('storage/' . $item->path) }}" target="_blank"
+                                        class="dark:text-white underline">
+                                        {{ Str::limit($item->name, 20) }}
+                                    </a>
+                                    <div class="relative">
+                                        <button onclick="toggleDropdown('{{ $item->id }}')"
+                                            class="dark:text-white">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <div id="dropdown-{{ $item->id }}"
+                                            class="hidden absolute right-0 z-10 mt-2 w-40 bg-white dark:bg-gray-700 shadow-lg rounded-md">
+                                            <ul class="p-3">
+                                                <li>
+                                                    <button
+                                                        onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
+                                                        class="text-yellow-500 hover:text-yellow-700">
+                                                        <i class="fa-solid fa-edit"></i> Edit
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button
+                                                        onclick="shareItem('{{ $item->id }}', '{{ asset('storage/' . $item->path) }}')"
+                                                        class="text-blue-500 hover:text-blue-700">
+                                                        <i class="fa-solid fa-share"></i> Share
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <form action="{{ route('files.destroy', $item->id) }}"
+                                                        method="POST">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" class="text-red-500 hover:text-red-700">
+                                                            <i class="fa-solid fa-trash"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
-                                @endif
+                                </div>
                             @else
-                                <div class="flex justify-between">
+                                <div class="flex justify-between folder cursor-move" draggable="true"
+                                    data-id="{{ $item->id }}">
                                     <div>
                                         @if ($item instanceof \App\Models\Folder)
                                             @if ($item->files->count() > 0 || $item->subfolders->count() > 0)
@@ -152,23 +147,44 @@
                                             @endif
                                         @endif
                                         <a href="{{ route('dashboard.show', $item->uuid) }}"
-                                            class="text-blue-600 hover:underline">
+                                            class="dark:text-white underline">
                                             {{ Str::limit($item->name, 20) }}
                                         </a>
                                     </div>
-                                    <div class="flex items-center space-x-2">
-                                        <button onclick="editFolderName('{{ $item->id }}', '{{ $item->name }}')"
-                                            class="text-yellow-500 hover:text-yellow-700">
-                                            <i class="fa-solid fa-edit"></i>
+                                    <div class="relative">
+                                        <button onclick="toggleDropdown('{{ $item->id }}')"
+                                            class="dark:text-white">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
                                         </button>
-                                        <form
-                                            action="{{ isset($item->path) ? route('files.destroy', $item->id) : route('folders.destroy', $item->id) }}"
-                                            method="POST">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="text-red-500 hover:text-red-700">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        <div id="dropdown-{{ $item->id }}"
+                                            class="hidden absolute right-0 z-10 mt-2 w-40 bg-white dark:bg-gray-700 shadow-lg rounded-md">
+                                            <ul class="p-3">
+                                                <li>
+                                                    <button
+                                                        onclick="editFolderName('{{ $item->id }}', '{{ $item->name }}')"
+                                                        class="text-yellow-500 hover:text-yellow-700">
+                                                        <i class="fa-solid fa-edit"></i> Edit
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button
+                                                        onclick="shareItem('{{ $item->id }}', '{{ route('dashboard.show', $item->uuid) }}')"
+                                                        class="text-blue-500 hover:text-blue-700">
+                                                        <i class="fa-solid fa-share"></i> Share
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <form
+                                                        action="{{ isset($item->path) ? route('files.destroy', $item->id) : route('folders.destroy', $item->id) }}"
+                                                        method="POST">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" class="text-red-500 hover:text-red-700">
+                                                            <i class="fa-solid fa-trash"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                             @endif
@@ -180,7 +196,7 @@
     </div>
 
     <!-- Modal Tambah Folder -->
-    <div id="addFolderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div id="addFolderModal" class="fixed inset-0  bg-black bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-white dark:bg-gray-800 dark:text-white p-6 rounded-lg shadow-lg w-96">
             <h3 class="text-lg font-semibold mb-4">New Folder</h3>
             <form action="{{ route('folders.store') }}" method="POST">
@@ -202,7 +218,7 @@
     </div>
 
     <!-- Modal Tambah File -->
-    <div id="addFileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div id="addFileModal" class="fixed inset-0  bg-black bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-white dark:bg-gray-800 dark:text-white p-6 rounded-lg shadow-lg w-96">
             <h3 class="text-lg font-semibold mb-4">Upload File</h3>
             <form id="uploadForm" action="{{ route('files.store') }}" method="POST" enctype="multipart/form-data">
@@ -233,7 +249,7 @@
     </div>
 
     <!-- Modal Edit File -->
-    <div id="editFileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div id="editFileModal" class="fixed inset-0  bg-black bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-white dark:bg-gray-800 dark:text-white p-6 rounded-lg shadow-lg w-96">
             <h3 class="text-lg font-semibold mb-4">Edit File Name</h3>
             <form id="editFileForm" method="POST">
@@ -254,7 +270,7 @@
     </div>
 
     <!-- Modal Edit Folders -->
-    <div id="editFolderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div id="editFolderModal" class="fixed inset-0  bg-black bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-white dark:bg-gray-800 dark:text-white p-6 rounded-lg shadow-lg w-96">
             <h3 class="text-lg font-semibold mb-4">Edit Folders Name</h3>
             <form id="editFolderForm" method="POST">
@@ -277,6 +293,39 @@
 
 
     <script>
+        function toggleDropdown(itemId) {
+            let dropdown = document.getElementById('dropdown-' + itemId);
+            dropdown.classList.toggle('hidden');
+
+            // Menutup dropdown lain jika terbuka
+            document.querySelectorAll('[id^="dropdown-"]').forEach(el => {
+                if (el.id !== 'dropdown-' + itemId) {
+                    el.classList.add('hidden');
+                }
+            });
+        }
+
+        function shareItem(id, url) {
+            navigator.clipboard.writeText(url).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Link copied to clipboard!'
+                });
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        // Tutup dropdown jika klik di luar area
+        document.addEventListener('click', function(event) {
+            let isDropdownButton = event.target.closest('button[onclick^="toggleDropdown"]');
+            if (!isDropdownButton) {
+                document.querySelectorAll('[id^="dropdown-"]').forEach(el => {
+                    el.classList.add('hidden');
+                });
+            }
+        });
+
         function toggleView(view) {
             let container = document.getElementById('itemContainer');
             if (view === 'grid') {
@@ -376,6 +425,49 @@
             xhr.open('POST', this.action, true);
             xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('input[name="_token"]').value);
             xhr.send(formData);
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            let draggedItem = null;
+
+            document.querySelectorAll(".folder").forEach(folder => {
+                folder.addEventListener("dragstart", function(e) {
+                    draggedItem = this;
+                    e.dataTransfer.setData("text/plain", this.dataset.id);
+                });
+
+                folder.addEventListener("dragover", function(e) {
+                    e.preventDefault();
+                });
+
+                folder.addEventListener("drop", function(e) {
+                    e.preventDefault();
+                    let draggedFolderId = e.dataTransfer.getData("text/plain");
+                    let targetFolderId = this.dataset.id;
+
+                    if (draggedFolderId !== targetFolderId) {
+                        fetch(`/move-folder`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": document.querySelector(
+                                        "meta[name='csrf-token']").getAttribute("content"),
+                                },
+                                body: JSON.stringify({
+                                    folder_id: draggedFolderId,
+                                    parent_id: targetFolderId
+                                }),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    location.reload();
+                                }
+                            })
+                            .catch(error => console.error("Error:", error));
+                    }
+                });
+            });
         });
     </script>
 </x-app-layout>
