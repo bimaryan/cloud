@@ -27,7 +27,7 @@
 
     <div class="max-w-screen-xl mx-auto p-6">
         <div class="space-y-4">
-            <div class="bg-white shadow rounded-lg p-4 mb-4">
+            <div class="bg-white dark:bg-gray-800 dark:text-white shadow rounded-lg p-4 mb-4">
                 <h3 class="text-lg font-semibold mb-2">Storage Usage</h3>
                 <div class="relative w-full bg-gray-200 rounded-lg h-6">
                     @php
@@ -46,7 +46,7 @@
 
             <div class="flex justify-between items-center">
                 <!-- Tombol Grid/List -->
-                <div class="bg-white shadow rounded-lg p-2 md:flex hidden space-x-2">
+                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-2 md:flex hidden space-x-2">
                     <button onclick="toggleView('grid')" id="gridBtn"
                         class="px-2 py-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-800 transition">
                         <i class="fa-solid fa-border-all"></i>
@@ -58,7 +58,7 @@
                 </div>
 
                 <!-- Tombol Tambah -->
-                <div class="bg-white shadow rounded-lg p-2">
+                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-2">
                     <button onclick="document.getElementById('addFileModal').classList.remove('hidden')"
                         class="px-2 py-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-800 transition">
                         <i class="fa-solid fa-plus"></i> New Files
@@ -74,7 +74,7 @@
             <div id="itemContainer" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 @foreach ($items as $item)
                     <div>
-                        <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg shadow">
                             @if (isset($item->path))
                                 {{-- Jika item adalah file --}}
                                 @if (str_starts_with($item->mime_type, 'image'))
@@ -151,7 +151,7 @@
                             @else
                                 <div class="flex justify-between">
                                     <div>
-                                        <i class="fa-regular fa-folder text-yellow-500"></i>
+                                        <i class="fa-regular fa-folder mr-2"></i>
                                         <a href="{{ route('dashboard.show', $item->uuid) }}"
                                             class="text-blue-600 hover:underline">
                                             {{ $item->name }}
