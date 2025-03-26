@@ -14,7 +14,7 @@
         <div class="flex justify-between items-center">
             <a href="{{ url()->previous() ?? route('dashboard.index') }}"
                 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                <i class="fa-solid fa-arrow-left mr-2"></i> {{ $folder->name }}
+                <i class="fa-solid fa-folder mr-2"></i> {{ $folder->name }}
             </a>
         </div>
     </x-slot>
@@ -64,73 +64,92 @@
 
             <!-- Grid Folder dan File -->
             <div id="itemContainer" class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                <div>
-                    @foreach ($subfolders as $subfolder)
-                        <div class="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg shadow flex justify-between items-center">
-                            <div class="flex items-center space-x-2">
-                                <i class="fa-regular fa-folder mr-2"></i>
-                                <a href="{{ route('dashboard.show', $subfolder->uuid) }}"
-                                    class="font-medium text-blue-600 hover:underline">
-                                    {{ $subfolder->name }}
-                                </a>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="editFolderName('{{ $subfolder->id }}', '{{ $subfolder->name }}')"
-                                    class="text-yellow-500 hover:text-yellow-700">
-                                    <i class="fa-solid fa-edit"></i>
-                                </button>
-                                <form action="{{ route('folders.destroy', $subfolder->id) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-500 hover:text-red-700">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-                @foreach ($files as $file)
-                    <div class="bg-white p-4 rounded-lg shadow">
-                        @php
-                            $mime = mime_content_type(storage_path('app/public/' . $file->path));
-                        @endphp
+                @foreach ($items as $item)
+                    <div>
+                        <div class="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg shadow">
+                            @if ($item instanceof \App\Models\Folder)
+                                {{-- Jika Item adalah Folder --}}
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        @if ($item instanceof \App\Models\Folder)
+                                            @if ($item->files->count() > 0 || $item->subfolders->count() > 0)
+                                                <i class="fa-solid fa-folder mr-2"></i>
+                                            @else
+                                                <i class="fa-regular fa-folder mr-2"></i>
+                                            @endif
+                                        @endif
+                                        <a href="{{ route('dashboard.show', $item->uuid) }}"
+                                            class="text-blue-600 hover:underline">
+                                            {{ Str::limit($item->name, 20) }}
+                                        </a>
+                                    </div>
 
-                        @if (Str::startsWith($mime, 'image/'))
-                            <img src="{{ asset('storage/' . $file->path) }}" alt="{{ $file->name }}"
-                                class="w-full object-cover rounded-lg">
-                        @elseif (Str::startsWith($mime, 'audio/'))
-                            <audio controls class="w-full">
-                                <source src="{{ asset('storage/' . $file->path) }}" type="{{ $mime }}">
-                                Your browser does not support the audio element.
-                            </audio>
-                        @elseif (Str::startsWith($mime, 'video/'))
-                            <video controls class="w-full">
-                                <source src="{{ asset('storage/' . $file->path) }}" type="{{ $mime }}">
-                                Your browser does not support the video tag.
-                            </video>
-                        @else
-                            <i class="fa-regular fa-file mr-2"></i>
-                        @endif
-                        <div class="flex justify-between items-center space-x-2 mt-2">
-                            <div>
-                                <a href="{{ asset('storage/' . $file->path) }}" target="_blank"
-                                    class="text-blue-600 hover:underline mt-2">
-                                    {{ $file->name }}
-                                </a>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="editFileName('{{ $file->id }}', '{{ $file->name }}')"
-                                    class="text-yellow-500 hover:text-yellow-700">
-                                    <i class="fa-solid fa-edit"></i>
-                                </button>
-                                <form action="{{ route('files.destroy', $file->id) }}" method="POST">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-500 hover:text-red-700">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
+                                    <div class="flex space-x-2 items-center">
+                                        <button onclick="editFolderName('{{ $item->id }}', '{{ $item->name }}')"
+                                            class="text-yellow-500 hover:text-yellow-700">
+                                            <i class="fa-solid fa-edit"></i>
+                                        </button>
+                                        <form action="{{ route('folders.destroy', $item->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-500 hover:text-red-700">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @else
+                                {{-- Jika Item adalah File --}}
+                                @php
+                                    $mime = $item->path
+                                        ? mime_content_type(storage_path('app/public/' . $item->path))
+                                        : null;
+                                @endphp
+
+                                <div class="w-full">
+                                    @if ($mime && Str::startsWith($mime, 'image/'))
+                                        <img src="{{ asset('storage/' . $item->path) }}" alt="{{ $item->name }}"
+                                            class="w-full object-cover rounded-lg">
+                                    @elseif ($mime && Str::startsWith($mime, 'audio/'))
+                                        <audio controls class="w-full">
+                                            <source src="{{ asset('storage/' . $item->path) }}"
+                                                type="{{ $mime }}">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    @elseif ($mime && Str::startsWith($mime, 'video/'))
+                                        <video controls class="w-full">
+                                            <source src="{{ asset('storage/' . $item->path) }}"
+                                                type="{{ $mime }}">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    @else
+                                        <i class="fa-regular fa-file mr-2"></i>
+                                    @endif
+
+                                    <div class="flex justify-between items-center mt-2">
+                                        <div>
+                                            <a href="{{ asset('storage/' . $item->path) }}" target="_blank"
+                                                class="text-blue-600 hover:underline">
+                                                {{ Str::limit($item->name, 20) }}
+                                            </a>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <button
+                                                onclick="editFileName('{{ $item->id }}', '{{ $item->name }}')"
+                                                class="text-yellow-500 hover:text-yellow-700">
+                                                <i class="fa-solid fa-edit"></i>
+                                            </button>
+                                            <form action="{{ route('files.destroy', $item->id) }}" method="POST">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endforeach
@@ -140,17 +159,18 @@
 
     <!-- Modal Edit File -->
     <div id="editFileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+        <div class="bg-white dark:bg-gray-800 dark:text-white p-6 rounded-lg shadow-lg w-96">
             <h3 class="text-lg font-semibold mb-4">Edit File Name</h3>
             <form id="editFileForm" method="POST">
                 @csrf
                 @method('PUT')
-                <input type="text" name="name" id="editFileName" class="w-full border rounded-lg p-2 mb-2"
+                <input type="text" name="name" id="editFileName"
+                    class="w-full border rounded-lg p-2 mb-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     placeholder="New File Name">
                 <input type="hidden" name="file_id" id="editFileId">
                 <div class="flex justify-end space-x-2">
                     <button type="button" onclick="document.getElementById('editFileModal').classList.add('hidden')"
-                        class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg">Cancel</button>
                     <button type="submit"
                         class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition">Save</button>
                 </div>
@@ -160,18 +180,19 @@
 
     <!-- Modal Edit Folders -->
     <div id="editFolderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+        <div class="bg-white dark:bg-gray-800 dark:text-white p-6 rounded-lg shadow-lg w-96">
             <h3 class="text-lg font-semibold mb-4">Edit Folders Name</h3>
             <form id="editFolderForm" method="POST">
                 @csrf
                 @method('PUT')
-                <input type="text" name="name" id="editFolderName" class="w-full border rounded-lg p-2 mb-2"
+                <input type="text" name="name" id="editFolderName"
+                    class="w-full border rounded-lg p-2 mb-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     placeholder="New Folder Name">
                 <input type="hidden" name="folder_id" id="editFolderId">
                 <div class="flex justify-end space-x-2">
                     <button type="button"
                         onclick="document.getElementById('editFolderModal').classList.add('hidden')"
-                        class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg">Cancel</button>
                     <button type="submit"
                         class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition">Save</button>
                 </div>
@@ -181,19 +202,20 @@
 
     <!-- Modal Tambah Folder -->
     <div id="addFolderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 class="text-lg font-semibold mb-4">New Folders</h3>
+        <div class="bg-white dark:bg-gray-800 dark:text-white p-6 rounded-lg shadow-lg w-96">
+            <h3 class="text-lg font-semibold mb-4">New Folder</h3>
             <form action="{{ route('folders.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="parent_id" value="{{ $folder->id }}">
-                <input type="text" name="name" class="w-full border rounded-lg p-2 mb-2"
+                <input type="hidden" name="parent_id" value="{{ isset($folder) ? $folder->id : null }}">
+                <input type="text" name="name"
+                    class="w-full border rounded-lg p-2 mb-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     placeholder="Nama Folder">
                 @error('name')
                     <p class="text-sm text-red-500 mb-2">{{ $message }}</p>
                 @enderror
                 <div class="flex justify-end space-x-2">
                     <button type="button" onclick="document.getElementById('addFolderModal').classList.add('hidden')"
-                        class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg">Cancel</button>
                     <button type="submit"
                         class="px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition">Save</button>
                 </div>
@@ -203,31 +225,31 @@
 
     <!-- Modal Tambah File -->
     <div id="addFileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+        <div class="bg-white dark:bg-gray-800 dark:text-white p-6 rounded-lg shadow-lg w-96">
             <h3 class="text-lg font-semibold mb-4">Upload File</h3>
             <form id="uploadForm" action="{{ route('files.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <input type="file" name="file" id="fileInput" class="w-full border rounded-lg p-2 mb-2">
+                <input type="hidden" name="folder_id" value="{{ isset($folder) ? $folder->id : null }}">
+                <input type="file" name="file" id="fileInput"
+                    class="w-full border rounded-lg p-2 mb-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                 @error('file')
                     <p class="text-sm text-red-500 mb-2">{{ $message }}</p>
                 @enderror
 
                 <!-- Progress Bar -->
                 <div id="progressContainer" class="hidden mt-2">
-                    <div class="relative w-full bg-gray-200 rounded-lg h-4">
+                    <div class="relative w-full bg-gray-200 dark:bg-gray-700 rounded-lg h-4">
                         <div id="progressBar" class="absolute top-0 left-0 h-4 bg-blue-600 rounded-lg w-0"></div>
                     </div>
-                    <p id="progressText" class="text-sm text-gray-600 mt-1 text-center">0%</p>
-                    <p id="timeRemaining" class="text-xs text-gray-500 text-center mt-1"></p>
+                    <p id="progressText" class="text-sm text-gray-600 dark:text-gray-300 mt-1 text-center">0%</p>
+                    <p id="timeRemaining" class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1"></p>
                 </div>
 
                 <div class="flex justify-end space-x-2 mt-4">
                     <button type="button" onclick="document.getElementById('addFileModal').classList.add('hidden')"
-                        class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg">Cancel</button>
                     <button type="submit" id="uploadButton"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-                        Upload
-                    </button>
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">Upload</button>
                 </div>
             </form>
         </div>

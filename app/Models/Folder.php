@@ -23,4 +23,14 @@ class Folder extends Model
     {
         return 'uuid';
     }
+
+    public function files()
+    {
+        return $this->hasMany(File::class, 'folder_id');
+    }
+
+    public function subfolders()
+    {
+        return $this->hasMany(Folder::class, 'parent_id');
+    }
 }

@@ -33,6 +33,8 @@ class DashboardController extends Controller
         $subfolders = Folder::where('parent_id', $folder->id)->where('user_id', Auth::id())->get();
         $files = File::where('folder_id', $folder->id)->where('user_id', Auth::id())->get();
 
-        return view('dashboard.show.index', compact('folder', 'subfolders', 'files'));
+        $items = $subfolders->merge($files)->sortByDesc('created_at');
+
+        return view('dashboard.show.index', compact('items', 'folder'));
     }
 }
