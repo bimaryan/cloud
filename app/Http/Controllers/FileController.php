@@ -34,16 +34,14 @@ class FileController extends Controller
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('uploads/' . Auth::id(), 's3'); // Simpan di Cloudflare R2
+        $path = $file->store('uploads/' . Auth::id(), 'public');
 
-        // Optimasi hanya jika penyimpanan lokal (bukan R2)
-        if (Storage::disk('local')->exists($path)) {
-            $filePath = storage_path("app/$path");
+        // Kompresi file jika jenisnya gambar atau video
+        $filePath = storage_path("app/public/$path");
 
-            if (str_contains($file->getMimeType(), 'image') || str_contains($file->getMimeType(), 'video')) {
-                $optimizerChain = OptimizerChainFactory::create();
-                $optimizerChain->optimize($filePath);
-            }
+        if (str_contains($file->getMimeType(), 'image') || str_contains($file->getMimeType(), 'video')) {
+            $optimizerChain = OptimizerChainFactory::create();
+            $optimizerChain->optimize($filePath);
         }
 
         File::create([
@@ -55,7 +53,7 @@ class FileController extends Controller
             'user_id' => Auth::id(),
         ]);
 
-        return redirect()->back()->with('success', 'File berhasil diunggah ke Cloudflare R2!');
+        return redirect()->back()->with('success', 'File berhasil diunggah dengan kompresi!');
     }
 
     public function update(Request $request, $id)
