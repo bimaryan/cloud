@@ -366,6 +366,7 @@
                                                             @if (in_array($item->mime_type, [
                                                                     'text/html',
                                                                     'text/css',
+                                                                    'text/plain',
                                                                     'application/javascript',
                                                                     'text/javascript',
                                                                     'application/x-httpd-php',
